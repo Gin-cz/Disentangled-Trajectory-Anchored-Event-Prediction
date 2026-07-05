@@ -1,0 +1,12 @@
+torch
+numpy
+pandas
+tqdm
+tensorboard
+scipy
+matplotlib
+scikit-learn
+rapidfuzz
+fuzzywuzzy
+gensim
+shapely

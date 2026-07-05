@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local tooling
+.claude/
+.vscode/
+.idea/
+
+# Data and generated artifacts
+data/
+outputs/
+visualize/
+logs/
+runs/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.npz
+*.npy
+*.xlsx
+*.log
+*.out
+
+# OS
+.DS_Store

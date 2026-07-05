@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+title: DisTraj-Event
+message: Please cite the associated manuscript when using this code.
+type: software
+authors:
+  - name: DisTraj-Event Authors
+year: 2026
+license: MIT
