@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+"""Implement the linear event-prediction baseline."""
+
 import math
 import torch
 import torch.nn as nn
@@ -6,25 +7,19 @@ import torch.nn.functional as F
 
 
 class LinearEventHead(nn.Module):
-    """
-    Simple linear fusion baseline - no cross-player attention.
-
-    forward(h_players, h_ball, prior_emb, fut_emb) ->
-        (tgt_probs, event_logits, time_logits, pos_pred, tgt_logits)
-    """
     def __init__(
         self,
         hidden_dim: int,
         n_event_types: int = 5,
         fut_T: int = 64,
         n_players: int = 22,
-        d_model: int = 256,        # 保持接口一致，不使用
-        nhead: int = 8,            # 保持接口一致，不使用
-        num_layers: int = 2,       # 保持接口一致，不使用
-        dim_feedforward: int = 512,# 保持接口一致，不使用
-        dropout: float = 0.1,     # 保持接口一致，不使用
-        volterra_Q: int = 2,       # 保持接口一致，不使用
-        volterra_scales: int = 2,  # 保持接口一致，不使用
+        d_model: int = 256,
+        nhead: int = 8,
+        num_layers: int = 2,
+        dim_feedforward: int = 512,
+        dropout: float = 0.1,
+        volterra_Q: int = 2,
+        volterra_scales: int = 2,
     ):
         super().__init__()
         self.n_players = n_players

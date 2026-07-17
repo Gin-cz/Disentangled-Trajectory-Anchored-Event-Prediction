@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+"""Implement the Transformer event-prediction baseline."""
+
 import math
 import torch
 import torch.nn as nn
@@ -17,12 +18,6 @@ def _event_to_player(event_emb, n_players):
 
 
 class TransformerEventHead(nn.Module):
-    """
-    Set-Transformer style event head with cross-player attention.
-
-    forward(h_players, h_ball, prior_emb, fut_emb) ->
-        (tgt_probs, event_logits, time_logits, pos_pred, tgt_logits)
-    """
     def __init__(
         self,
         hidden_dim: int,
@@ -34,8 +29,8 @@ class TransformerEventHead(nn.Module):
         num_layers: int = 2,
         dim_feedforward: int = 512,
         dropout: float = 0.1,
-        volterra_Q: int = 2,       # 保持接口一致，不使用
-        volterra_scales: int = 2,  # 保持接口一致，不使用
+        volterra_Q: int = 2,
+        volterra_scales: int = 2,
     ):
         super().__init__()
         self.n_players = n_players

@@ -1,7 +1,5 @@
-import numpy as np
-import torch
+"""Track validation progress for early stopping."""
 
-# EarlyStopping & helpers
 class EarlyStopping:
     def __init__(self, patience=10, delta=1e-4):
         self.patience = patience

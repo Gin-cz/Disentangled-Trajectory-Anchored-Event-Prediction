@@ -7,12 +7,13 @@ The released training objective optimizes trajectory prediction, target-player p
 ## Repository Layout
 
 - `main.py`: training and checkpoint evaluation entrypoint.
+- `eval_checkpoint.py`: evaluation entrypoint for the released checkpoint.
+- `checkpoints/`: released Baller2Vec–DisTraj model weights.
 - `model_traj/`: Baller2Vec, STAR, LSTM, VRNN, and constant-velocity trajectory modules.
-- `model_event/`: linear, transformer, sequence, TGN, Volterra, and disentangled event predictors.
+- `model_event/`: main and baseline event predictors; nonlinear, HSIC/GRL, patch-wise, and gated ablations are consolidated in `disentangled_nonlinear.py`.
 - `train/`: curriculum training, metrics, interpolation, and distributed helpers.
-- `utils/`: preprocessing utilities for building `.pt` dataloader shards.
-- `visualize/`: plotting utilities for trajectories, event probabilities, and representation diagnostics.
-- `scripts/`: reproducible command templates for local training, checkpoint evaluation, and Slurm.
+- `utils/`: event–tracking preprocessing, graph/sequence construction, and sharded dataset loading.
+- `visualize/`: trajectory, event-probability, and representation visualizations.
 - `docs/`: data format and reproducibility notes.
 
 ## Installation
@@ -36,44 +37,42 @@ For checkpoint evaluation, only the `test/` split under `--pt_dir` is required. 
 
 ## Local Training
 
-Recommended reproduction configuration for the best Baller2Vec ratio-1.0 setting:
+Recommended reproduction command for the Baller2Vec ratio-1.0 setting:
 
 ```bash
-PT_DIR=/path/to/dataloader_140games_validbatch SAMPLE_ML_DIR=/path/to/data_140games_weighted/ml_3894534_1020746 OUTPUT_DIR=outputs/baller2vec_ratio1 scripts/train_baller2vec_ratio1.sh
-```
-
-Equivalent direct command:
-
-```bash
-python main.py   --pt_dir /path/to/dataloader_140games_validbatch   --sample_ml_dir /path/to/data_140games_weighted/ml_3894534_1020746   --output_dir outputs/baller2vec_ratio1   --games 140   --epochs 80   --batch_size 4   --num_workers 0   --traj_model baller2vec   --event_head disentangled   --dynamic_weight 1.0   --use_context   --use_voronoi_spatial
+python main.py \
+  --pt_dir /path/to/dataloader_140games_validbatch \
+  --sample_ml_dir /path/to/data_140games_weighted/ml_3894534_1020746 \
+  --output_dir outputs/baller2vec_ratio1 \
+  --games 140 --epochs 80 --batch_size 4 --num_workers 0 \
+  --traj_model baller2vec --event_head disentangled \
+  --dynamic_weight 1.0 --use_context --use_voronoi_spatial
 ```
 
 ## Checkpoint Evaluation
 
 ```bash
-PT_DIR=/path/to/dataloader_140games_validbatch SAMPLE_ML_DIR=/path/to/data_140games_weighted/ml_3894534_1020746 CHECKPOINT=/path/to/best_baller2vec_ratio1.pt OUTPUT_DIR=outputs/eval_baller2vec_ratio1 scripts/eval_checkpoint.sh
+python eval_checkpoint.py \
+  --pt_dir /path/to/dataloader_140games_validbatch \
+  --sample_ml_dir /path/to/data_140games_weighted/ml_3894534_1020746
 ```
 
-This loads the checkpoint, evaluates the test split, prints trajectory and event metrics, and writes JSON metrics under `OUTPUT_DIR/metrics/`.
-
-## Slurm Reproduction
-
-```bash
-PT_DIR=/path/to/dataloader_140games_validbatch SAMPLE_ML_DIR=/path/to/data_140games_weighted/ml_3894534_1020746 PYTHON=/path/to/python NPROC_PER_NODE=4 sbatch scripts/slurm_baller2vec_ratio1.sh
-```
-
-To evaluate an existing checkpoint through Slurm, also pass `CHECKPOINT=/path/to/checkpoint.pt`.
+This uses `checkpoints/distraj_baller2vec_ratio1_combo_140games.pt`, constructs the matching model configuration, evaluates the test split, and writes JSON metrics under `outputs/eval_checkpoint/metrics/`. Pass `--checkpoint /path/to/another.pt` to evaluate another compatible checkpoint.
 
 ## Build Dataloader Shards
 
 If you already have sequence files and per-match graph features:
 
 ```bash
-python -m utils.gin6_shard   --seqs_dir /path/to/sequences   --ml_root /path/to/ml_root   --output_dir /path/to/dataloader_root   --batch_size 64
+python -m utils.dataset \
+  --seqs_dir /path/to/sequences \
+  --ml_root /path/to/ml_root \
+  --output_dir /path/to/dataloader_root \
+  --batch_size 64
 ```
 
 ## Notes
 
-- Large data, checkpoints, logs, TensorBoard runs, and generated figures are intentionally ignored by `.gitignore`.
+- Large data, locally trained checkpoints, logs, TensorBoard runs, and generated figures are intentionally ignored by `.gitignore`; the documented released checkpoint is included.
 - The code does not include proprietary match data. Users must prepare data according to their own data license.
 - `--n_event_types` defaults to `5` for compatibility with existing checkpoints. Change it only when training from scratch with a matching event-head shape.

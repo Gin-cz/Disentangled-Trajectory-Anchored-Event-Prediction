@@ -1,3 +1,5 @@
+"""Compute trajectory, target-player, timing, and position metrics."""
+
 import torch
 from typing import List, Tuple, Dict
 
@@ -6,12 +8,6 @@ from typing import List, Tuple, Dict
 def reindex_by_labels(x_TBAD: torch.Tensor,
                       src_labels_BA: List[List[str]],
                       dst_labels_BA: List[List[str]]) -> torch.Tensor:
-    """
-    将 x_TBAD（其 A 维顺序对应 src_labels_BA）重排为 A 维顺序对应 dst_labels_BA。
-    x_TBAD: [T,B,A,D]
-    src_labels_BA: len B，每个是长度 A 的字符串列表（当前 A 维标签顺序）
-    dst_labels_BA: len B，每个是长度 A 的字符串列表（目标 A 维标签顺序）
-    """
     T, B, A, D = x_TBAD.shape
     out = torch.zeros_like(x_TBAD)
     for b in range(B):
@@ -21,13 +17,13 @@ def reindex_by_labels(x_TBAD: torch.Tensor,
             if k is not None:
                 out[:, b, j, :] = x_TBAD[:, b, k, :]
             else:
-                out[:, b, j, :].zero_()  # 目标里有但源里没有时，置零
+                out[:, b, j, :].zero_()
     return out
 
 @torch.no_grad()
 def _compute_ADE_FDE(fut_pred_TBAD: torch.Tensor, fut_gt_TBAD: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     diff = fut_pred_TBAD - fut_gt_TBAD
-    l2 = torch.sqrt((diff * diff).sum(dim=3) + 1e-12)  # [T,B,A]
+    l2 = torch.sqrt((diff * diff).sum(dim=3) + 1e-12)
     ADE = l2.mean(dim=(0,2)).mean()
     FDE = l2[-1].mean(dim=1).mean()
     return ADE, FDE
@@ -52,11 +48,11 @@ def align_fut_by_tid(fut_pred: torch.Tensor, ctx_tids: torch.Tensor, fut_tids: t
 def eval_best_of_n(fut_samples_TBASD: torch.Tensor, fut_gt_BTAD: torch.Tensor) -> Dict[str, float]:
     device = fut_samples_TBASD.device
     T,B,A,S,D = fut_samples_TBASD.shape
-    fut_gt_TBAD = fut_gt_BTAD.permute(1,0,2,3).contiguous()  # [T,B,A,D]
-    diff = fut_samples_TBASD - fut_gt_TBAD.unsqueeze(3)      # [T,B,A,S,D]
-    l2 = torch.sqrt((diff * diff).sum(dim=4) + 1e-12)        # [T,B,A,S]
-    ade_per_sample = l2.mean(dim=(0,2))                      # [B,S]
-    best_idx = ade_per_sample.argmin(dim=1)                  # [B]
+    fut_gt_TBAD = fut_gt_BTAD.permute(1,0,2,3).contiguous()
+    diff = fut_samples_TBASD - fut_gt_TBAD.unsqueeze(3)
+    l2 = torch.sqrt((diff * diff).sum(dim=4) + 1e-12)
+    ade_per_sample = l2.mean(dim=(0,2))
+    best_idx = ade_per_sample.argmin(dim=1)
     idx_expand_A = best_idx.view(1,B,1,1).expand(T,B,A,1)
     l2_best = torch.gather(l2, dim=3, index=idx_expand_A).squeeze(3)
     ADE_top   = l2_best.mean(dim=(0,2)).mean().item()

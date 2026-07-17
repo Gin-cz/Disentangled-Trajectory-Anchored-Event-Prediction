@@ -27,5 +27,11 @@ checkpoints/
 *.log
 *.out
 
+# Keep the released public checkpoint while ignoring local training outputs.
+!checkpoints/
+checkpoints/*
+!checkpoints/README.md
+!checkpoints/distraj_baller2vec_ratio1_combo_140games.pt
+
 # OS
 .DS_Store

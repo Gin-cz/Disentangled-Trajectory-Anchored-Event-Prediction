@@ -1,9 +1,10 @@
+"""Provide distributed-training helper functions."""
+
 import torch.distributed as dist
 import torch
 from typing import Dict
 
 
-#  DDP Utils 
 def is_dist_avail_and_initialized() -> bool:
     return dist.is_available() and dist.is_initialized()
 

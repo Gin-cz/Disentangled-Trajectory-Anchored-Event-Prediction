@@ -1,3 +1,5 @@
+"""Interpolate trajectory and event-time predictions."""
+
 import torch
 
 def torch_interp_1d(x: torch.Tensor, xp: torch.Tensor, fp: torch.Tensor) -> torch.Tensor:
@@ -25,4 +27,3 @@ def interpolate_traj(seq: torch.Tensor) -> torch.Tensor:
                     else:
                         seq_out[b, c, :, a, d] = torch_interp_1d(time_idx, time_idx[mask], y[mask])
     return seq_out
-

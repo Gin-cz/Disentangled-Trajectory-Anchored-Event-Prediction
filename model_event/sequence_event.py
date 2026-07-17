@@ -1,13 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Sequence-event baselines adapted to the LAT event-prediction interface.
-
-Both heads keep the same output contract as the other event heads:
-    (tgt_probs, event_logits, time_logits, pos_pred, tgt_logits)
-
-They do not predict spatial zones. Event position is still evaluated by the
-shared trajectory-anchoring rule used elsewhere in the project.
-"""
+"""Implement sequence-to-event and marked point-process baselines."""
 
 import math
 
@@ -17,7 +8,6 @@ import torch.nn.functional as F
 
 
 def _pool_event_sequence(event_emb, h_players):
-    """Return a [B, C, H] event sequence, creating a one-step fallback if absent."""
     if event_emb is None:
         return h_players.mean(dim=1, keepdim=True)
     if event_emb.dim() == 2:
@@ -28,7 +18,6 @@ def _pool_event_sequence(event_emb, h_players):
 
 
 def _ball_context(h_players, h_ball, context_ball):
-    """Normalize optional ball context to [B, A, H]."""
     B, A, H = h_players.shape
     if context_ball is None:
         attn_score = torch.sum(h_players * h_ball.unsqueeze(1), dim=-1, keepdim=True) / math.sqrt(H)
@@ -42,13 +31,6 @@ def _ball_context(h_players, h_ball, context_ball):
 
 
 class Seq2EventHead(nn.Module):
-    """
-    Seq2Event-style baseline.
-
-    The historical event sequence is encoded with a GRU and used as a global
-    event context. Candidate player states are then scored against this context
-    for target-player and action-time prediction.
-    """
 
     def __init__(
         self,
@@ -109,8 +91,6 @@ class Seq2EventHead(nn.Module):
 
         context_ball = _ball_context(h_players, h_ball, context_ball)
 
-        # Seq2Event-style sequence context is adapted to the shared
-        # trajectory-conditioned interface used by the other event heads.
         player_ctx = self.player_fusion(
             torch.cat([h_players, prior_emb, context_ball, fut_emb, seq_ctx_player], dim=-1)
         )
@@ -128,13 +108,6 @@ class Seq2EventHead(nn.Module):
 
 
 class NMSTPPEventHead(nn.Module):
-    """
-    NMSTPP-style baseline without zone prediction.
-
-    The event history is encoded by self-attention. A player-conditioned mark
-    representation is combined with learnable future-time embeddings to produce
-    discrete-time event intensities over the 64-frame forecast horizon.
-    """
 
     def __init__(
         self,
@@ -207,8 +180,6 @@ class NMSTPPEventHead(nn.Module):
 
         context_ball = _ball_context(h_players, h_ball, context_ball)
 
-        # NMSTPP-style mark representation. We keep the same target-player
-        # mark space as the project: the next acting player among 22 players.
         player_ctx = self.player_fusion(
             torch.cat([h_players, prior_emb, context_ball, fut_emb, seq_ctx_player], dim=-1)
         )

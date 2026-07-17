@@ -29,10 +29,13 @@ These files are used to reconstruct feature layouts. They can come from any matc
 
 ## Building `.pt` Batches
 
-Use `utils.gin6_shard` after preparing sequence `.npz` files and per-match `ml_*` feature folders:
+Use `utils.dataset` after preparing sequence `.npz` files and per-match `ml_*` feature folders:
 
 ```bash
-python -m utils.gin6_shard   --seqs_dir /path/to/sequences   --ml_root /path/to/ml_root   --output_dir /path/to/dataloader_root
+python -m utils.dataset \
+  --seqs_dir /path/to/sequences \
+  --ml_root /path/to/ml_root \
+  --output_dir /path/to/dataloader_root
 ```
 
-The earlier `gin1` to `gin5` scripts are retained as preprocessing utilities. Their paths are controlled by environment variables such as `DISTRAJ_RAW_DATA_ROOT`, `DISTRAJ_ID_MAPPING`, `DISTRAJ_ALIGNED_DIR`, `DISTRAJ_NODE_EDGE_DIR`, `DISTRAJ_ML_ROOT`, and `DISTRAJ_SEQUENCE_DIR`.
+The preprocessing modules use descriptive names: `preprocessing.py` aligns event and tracking data and constructs synchronized node/edge features, `graph_features.py` builds graph tensors, `sequence_builder.py` creates fixed-length trajectory sequences, and `player_features.py` derives static player metadata. Their paths are controlled by environment variables such as `DISTRAJ_RAW_DATA_ROOT`, `DISTRAJ_ID_MAPPING`, `DISTRAJ_ALIGNED_DIR`, `DISTRAJ_NODE_EDGE_DIR`, `DISTRAJ_ML_ROOT`, and `DISTRAJ_SEQUENCE_DIR`.

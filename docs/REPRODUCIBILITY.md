@@ -8,16 +8,24 @@ The recommended reproduced configuration is:
 - context: enabled
 - Voronoi spatial prior: enabled when Shapely is available
 
-Use:
+Train directly with:
 
 ```bash
-PT_DIR=/path/to/dataloader_140games_validbatch SAMPLE_ML_DIR=/path/to/data_140games_weighted/ml_3894534_1020746 scripts/train_baller2vec_ratio1.sh
+python main.py \
+  --pt_dir /path/to/dataloader_140games_validbatch \
+  --sample_ml_dir /path/to/data_140games_weighted/ml_3894534_1020746 \
+  --output_dir outputs/baller2vec_ratio1 \
+  --games 140 --epochs 80 --batch_size 4 --num_workers 0 \
+  --traj_model baller2vec --event_head disentangled \
+  --dynamic_weight 1.0 --use_context --use_voronoi_spatial
 ```
 
-For an existing checkpoint:
+Evaluate the released checkpoint with:
 
 ```bash
-PT_DIR=/path/to/dataloader_140games_validbatch SAMPLE_ML_DIR=/path/to/data_140games_weighted/ml_3894534_1020746 CHECKPOINT=/path/to/checkpoint.pt scripts/eval_checkpoint.sh
+python eval_checkpoint.py \
+  --pt_dir /path/to/dataloader_140games_validbatch \
+  --sample_ml_dir /path/to/data_140games_weighted/ml_3894534_1020746
 ```
 
-All generated checkpoints and metrics are written under `OUTPUT_DIR`, which defaults to `outputs/...`.
+`eval_checkpoint.py` uses the bundled Baller2Vec–DisTraj checkpoint and writes metrics under `outputs/eval_checkpoint/metrics/` by default. Use `--checkpoint` or `--output_dir` to override either path.
