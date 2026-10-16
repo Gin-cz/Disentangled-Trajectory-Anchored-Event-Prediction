@@ -31,33 +31,9 @@ Install the PyTorch build that matches your CUDA driver if the default wheel is 
 Training and evaluation require two paths:
 
 - `--pt_dir`: dataloader root with `train/`, `val/`, and `test/` subdirectories containing `.pt` batch files.
-- `--sample_ml_dir`: one `ml_*` feature directory containing `edges_raw_2d.npz` and `nodes_dynamic_2d.npz`, used to recover feature column names.
 
 For checkpoint evaluation, only the `test/` split under `--pt_dir` is required. See `docs/DATA_FORMAT.md` for expected fields.
 
-## Local Training
-
-Recommended reproduction command for the Baller2Vec ratio-1.0 setting:
-
-```bash
-python main.py \
-  --pt_dir /path/to/dataloader_140games_validbatch \
-  --sample_ml_dir /path/to/data_140games_weighted/ml_3894534_1020746 \
-  --output_dir outputs/baller2vec_ratio1 \
-  --games 140 --epochs 80 --batch_size 4 --num_workers 0 \
-  --traj_model baller2vec --event_head disentangled \
-  --dynamic_weight 1.0 --use_context --use_voronoi_spatial
-```
-
-## Checkpoint Evaluation
-
-```bash
-python eval_checkpoint.py \
-  --pt_dir /path/to/dataloader_140games_validbatch \
-  --sample_ml_dir /path/to/data_140games_weighted/ml_3894534_1020746
-```
-
-This uses `checkpoints/distraj_baller2vec_ratio1_combo_140games.pt`, constructs the matching model configuration, evaluates the test split, and writes JSON metrics under `outputs/eval_checkpoint/metrics/`. Pass `--checkpoint /path/to/another.pt` to evaluate another compatible checkpoint.
 
 ## Build Dataloader Shards
 
